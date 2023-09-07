@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <time.h>
+
+// Define a structure for the data structure
+typedef struct {
+    int *arr;        // Dynamic array to store elements
+    int size;        // Size of the dynamic array
+    int count;       // Number of elements in the dynamic array
+    int *indexMap;   // Hash map to store the index of each element
+} RandomizedSet;
+
+// Function to initialize the data structure
+RandomizedSet *randomizedSetCreate() {
+    RandomizedSet *set = (RandomizedSet *)malloc(sizeof(RandomizedSet));
+    set->size = 1000;  // Initial size of the dynamic array (you can adjust this as needed)
+    set->count = 0;
+    set->arr = (int *)malloc(sizeof(int) * set->size);
+    set->indexMap = (int *)malloc(sizeof(int) * set->size);
+    memset(set->indexMap, -1, sizeof(int) * set->size);  // Initialize indexMap with -1 (indicating element not present)
+    return set;
+}
+
+// Function to insert an element into the data structure
+bool randomizedSetInsert(RandomizedSet *obj, int val) {
+    if (obj == NULL)
+        return false;
+
+    // Check if the element is already present
+    if (obj->indexMap[val] != -1)
+        return false;
+
+    // Check if the dynamic array is full and resize if needed
+    if (obj->count == obj->size) {
+        obj->size *= 2;
+        obj->arr = (int *)realloc(obj->arr, sizeof(int) * obj->size);
+    }
+
+    // Add the element to the end of the dynamic array
+    obj->arr[obj->count] = val;
+
+    // Update the index map
+    obj->indexMap[val] = obj->count;
+    obj->count++;
+    return true;
+}
+
+// Function to remove an element from the data structure
+bool randomizedSetRemove(RandomizedSet *obj, int val) {
+    if (obj == NULL)
+        return false;
+
+    // Check if the element is present
+    if (obj->indexMap[val] == -1)
+        return false;
+
+    // Swap the element to be removed with the last element in the dynamic array
+    int lastIndex = obj->count - 1;
+    int lastElement = obj->arr[lastIndex];
+    int indexToRemove = obj->indexMap[val];
+
+    obj->arr[indexToRemove] = lastElement;
+    obj->indexMap[lastElement] = indexToRemove;
+
+    // Mark the removed element as not present
+    obj->indexMap[val] = -1;
+    obj->count--;
+    return true;
+}
+
+// Function to get a random element from the data structure
+int randomizedSetGetRandom(RandomizedSet *obj) {
+    if (obj == NULL || obj->count == 0)
+        return -1;
+
+    // Generate a random index within the current count of elements
+    int randomIndex = rand() % obj->count;
+
+    // Return the element at the random index
+    return obj->arr[randomIndex];
+}
+
+// Function to free the memory used by the data structure
+void randomizedSetFree(RandomizedSet *obj) {
+    if (obj != NULL) {
+        free(obj->arr);
+        free(obj->indexMap);
+        free(obj);
+    }
+}
+
+int main() {
+    // Seed the random number generator
+    srand(time(NULL));
+
+    RandomizedSet *obj = randomizedSetCreate();
+    randomizedSetInsert(obj, 1);
+    randomizedSetInsert(obj, 2);
+    randomizedSetInsert(obj, 3);
+
+    printf("Random element: %d\n", randomizedSetGetRandom(obj));
+
+    randomizedSetRemove(obj, 2);
+    printf("Random element: %d\n", randomizedSetGetRandom(obj));
+
+    randomizedSetFree(obj);
+
+    return 0;
+}
